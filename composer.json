@@ -1,0 +1,21 @@
+{
+    "name": "cyve/slim-platform",
+    "description": "REST API micro framework",
+    "type": "project",
+    "license": "Proprietary",
+    "authors": [
+        {
+            "name": "Cyril Vermande",
+            "email": "cyril@cyrilwebdesign.com"
+        }
+    ],
+    "require": {
+        "slim/slim": "^4.0",
+        "slim/psr7": "^0.6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "SlimPlatform\\": "src/"
+        }
+    }
+}
