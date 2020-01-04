@@ -11,7 +11,6 @@ class Put extends AbstractAction
     {
         $data = $request->getAttribute('data');
 
-        $this->validate(data);
         $this->write($data);
 
         $response->getBody()->write(json_encode($data));

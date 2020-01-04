@@ -16,29 +16,6 @@ abstract class AbstractAction
         $this->config = $container->get('config')['resources'][$resource];
     }
 
-    protected function validate($object)
-    {
-        foreach ($this->config['model'] as $property => $config) {
-            $value = $object->$property;
-
-            if ($value === null) {
-                if ($config['required'] ?? false) {
-                    throw new \Exception(sprintf('Property `%s` is empty.', $property));
-                }
-                continue;
-            }
-
-            $type = $config['type'] ?? 'string';
-            if ($type === 'datetime') {
-                if (!\DateTime::createFromFormat('Y-m-d H:i:s', $value)) {
-                    throw new \Exception(sprintf('Invalid property `%s` (expected `datetime` with format `Y-m-d H:i:s`).', $property));
-                }
-            } elseif ($type !== gettype($value)) {
-                throw new \Exception(sprintf('Invalid property `%s` (expected `%s`).', $property, $type));
-            }
-        }
-    }
-
     protected function write($object)
     {
         $pdo = $this->container->get('pdo');
