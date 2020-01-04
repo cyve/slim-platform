@@ -9,6 +9,7 @@ use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 class WriteMiddleware
 {
     protected $container;
+    protected $config;
 
     public function __construct(ContainerInterface $container)
     {
@@ -17,36 +18,54 @@ class WriteMiddleware
 
     public function __invoke(Request $request, RequestHandler $handler)
     {
-        $pdo = $this->container->get('pdo');
-        $config = $request->getAttribute('_config');
-        $table = $config['table'];
-        $columns = array_keys($config['model']);
+        $this->config = $request->getAttribute('_config');
         $data = $request->getAttribute('data');
 
         if ($request->getAttribute('_action') === 'create') {
-            $sqlColumns = array_map(function ($column) {
-                return sprintf(':%s', $column);
-            }, $columns);
-            $sql = 'INSERT INTO '.$table.' ('.implode(',', $columns).') VALUES ('.implode(',', $sqlColumns).')';
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute((array) $data);
-            $data->id = $pdo->lastInsertId();
+            if (is_array($data)) {
+                array_walk($data, [$this, 'create']);
+            } else {
+                $this->create($data);
+            }
 
         } elseif ($request->getAttribute('_action') === 'update') {
-            $sqlColumns = array_map(function ($column) {
-                return sprintf('%s=:%s', $column, $column);
-            }, $columns);
-            $sql = 'UPDATE '.$table.' SET '.implode(',', $sqlColumns).' WHERE id = :id';
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute((array) $data);
+            $this->update($data);
 
         } elseif ($request->getAttribute('_action') === 'delete') {
-            $stmt = $pdo->prepare('DELETE FROM '.$table.' WHERE id = :id');
-            $stmt->execute(['id' => $data->id]);
-
+            $this->delete($data);
             $request = $request->withoutAttribute('data');
         }
 
         return $handler->handle($request);
+    }
+
+    private function create (&$data): void
+    {
+        $columns = array_keys($this->config['model']);
+        $sqlColumns = array_map(function ($column) {
+            return sprintf(':%s', $column);
+        }, $columns);
+        $sql = 'INSERT INTO '.$this->config['table'].' ('.implode(',', $columns).') VALUES ('.implode(',', $sqlColumns).')';
+        $pdo = $this->container->get('pdo');
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute((array) $data);
+        $data->id = $pdo->lastInsertId();
+    }
+
+    private function update ($data): void
+    {
+        $columns = array_keys($this->config['model']);
+        $sqlColumns = array_map(function ($column) {
+            return sprintf('%s=:%s', $column, $column);
+        }, $columns);
+        $sql = 'UPDATE '.$this->config['table'].' SET '.implode(',', $sqlColumns).' WHERE id = :id';
+        $stmt = $this->container->get('pdo')->prepare($sql);
+        $stmt->execute((array) $data);
+    }
+
+    private function delete ($data): void
+    {
+        $stmt = $this->container->get('pdo')->prepare('DELETE FROM '.$this->config['table'].' WHERE id = :id');
+        $stmt->execute(['id' => $data->id]);
     }
 }

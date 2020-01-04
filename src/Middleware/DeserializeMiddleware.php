@@ -9,15 +9,25 @@ class DeserializeMiddleware
 {
     public function __invoke(Request $request, RequestHandler $handler)
     {
-        $action = $request->getAttribute('_action');
-        if ($action === 'create') {
-            $data = (object) $request->getParsedBody();
-            $request = $request->withAttribute('data', $data);
-        } elseif ($action === 'update') {
-            $data = (object) array_merge((array) $request->getAttribute('data'), $request->getParsedBody());
+        if ($requestBody = $request->getParsedBody()) {
+            $data = $this->deserialize($request->getParsedBody(), $request->getAttribute('data'));
             $request = $request->withAttribute('data', $data);
         }
 
         return $handler->handle($request);
+    }
+
+    private function deserialize($data, $object = null)
+    {
+        if (is_object($object)) {
+            return (object) array_merge((array) $object, (array) $data);
+        }
+
+        // recursivity
+        if (array_values($data) === $data) {
+            return array_map([$this, 'deserialize'], $data);
+        }
+
+        return (object) $data;
     }
 }

@@ -13,18 +13,21 @@ class ValidateMiddleware
     {
         if (in_array($request->getAttribute('_action'), ['create', 'update'])) {
             $this->config = $request->getAttribute('_config');
-            $data = $request->getAttribute('data');
-
-            $this->validate($data);
+            $this->validate($request->getAttribute('data'));
         }
 
         return $handler->handle($request);
     }
 
-    private function validate($object): void
+    private function validate($data)
     {
+        // recursivity
+        if (is_array($data)) {
+            return array_walk($data, [$this, 'validate']);
+        }
+
         foreach ($this->config['model'] as $property => $model) {
-            $value = $object->$property;
+            $value = $data->$property;
 
             if ($value === null) {
                 if ($model['required'] ?? false) {
