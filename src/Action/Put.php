@@ -13,6 +13,7 @@ class Put extends AbstractAction
 
         $data = $request->getParsedBody();
         $object = (object) array_merge((array) $object, (array) $data);
+        $this->validate($object);
         $this->write($object);
 
         $response->getBody()->write(json_encode($object));

@@ -15,6 +15,7 @@ class Post extends AbstractAction
         }
 
         foreach ($data as &$item) {
+            $this->validate((object) $item);
             $item = $this->write((object) $item);
         }
 
