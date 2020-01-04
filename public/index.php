@@ -79,9 +79,16 @@ $app->get('/', function (Request $request, Response $response) {
     return $response;
 });
 
-foreach ($config['resources'] as $name => $resource) {
-    foreach ($resource['actions'] as $action) {
-        $app->map([$action['method']], $action['uri'], new $action['handler']($container, $name));
+foreach ($config['resources'] as $resourceName => $resource) {
+    foreach ($resource['actions'] as $actionName => $action) {
+        $app->map([$action['method']], $action['uri'], function(Request $request, Response $response, $args) use ($action, $container, $resourceName, $actionName) {
+            $handler = new $action['handler']($container, $resourceName);
+
+            $request = $request->withAttribute('_resource', $resourceName);
+            $request = $request->withAttribute('_action', strtolower($actionName));
+
+            return $handler($request, $response, $args);
+        });
     }
 }
 
