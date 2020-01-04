@@ -88,6 +88,7 @@ foreach ($config['resources'] as $resourceName => $resource) {
 
             return $handler($request, $response, $args);
         })
+        ->add(new Middleware\WriteMiddleware($container))
         ->add(new Middleware\ValidateMiddleware())
         ->add(new Middleware\DeserializeMiddleware())
         ->add(new Middleware\ReadMiddleware($container))

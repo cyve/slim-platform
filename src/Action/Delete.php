@@ -9,10 +9,6 @@ class Delete extends AbstractAction
 {
     public function __invoke(Request $request, Response $response, $args): Response
     {
-        $object = $request->getAttribute('data');
-        $this->delete($object);
-        $response = $response->withStatus(204);
-
-        return $response;
+        return $response->withStatus(204);
     }
 }
