@@ -14,16 +14,8 @@ class Post extends AbstractAction
             $data = [$data];
         }
 
-        $pdo = $this->container->get('pdo');
-        $sql = 'INSERT INTO '.$this->config['table'].' ('.implode(',', array_keys($this->config['model'])).')';
-        $sql .= ' VALUES ('.implode(',', array_map(function ($row) {
-            return sprintf(':%s', $row);
-        }, array_keys($this->config['model']))).')';
-        $stmt = $pdo->prepare($sql);
-
-        foreach ($data as &$input) {
-            $stmt->execute($input);
-            $input['id'] = $pdo->lastInsertId();
+        foreach ($data as &$item) {
+            $item = $this->write((object) $item);
         }
 
         if (array_values($data) === $data && count($data) === 1) {

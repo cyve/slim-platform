@@ -9,12 +9,8 @@ class All extends AbstractAction
 {
     public function __invoke(Request $request, Response $response, $args): Response
     {
-        $pdo = $this->container->get('pdo');
-        $stmt = $pdo->prepare('SELECT id,'.implode(',', array_keys($this->config['model'])).' FROM '.$this->config['table']);
-        $stmt->execute();
-        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        $response->getBody()->write(json_encode($results));
+        $data = $this->read($request);
+        $response->getBody()->write(json_encode($data));
 
         return $response->withHeader('Content-Type', 'application/json');
     }
