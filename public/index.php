@@ -10,4 +10,5 @@ $app = AppFactory::create();
 $app->get('/', function (Request $request, Response $response) {
     return $response;
 });
+$app->addErrorMiddleware(true, true, true);
 $app->run();
