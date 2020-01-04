@@ -3,7 +3,7 @@
 use Psr\Http\Message\RequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Factory\AppFactory;
-use SlimPlatform\Container\Container;
+use SlimPlatform\Utils\ParameterBag;
 
 require dirname(__DIR__).'/vendor/autoload.php';
 
@@ -64,8 +64,7 @@ $config = [
     ]
 ];
 
-$container = new Container();
-$container->set('config', $config);
+$container = new ParameterBag(['config' => $config]);
 
 $params = parse_url($_ENV['DATABASE_URL']);
 $container->set('pdo', new \PDO(
