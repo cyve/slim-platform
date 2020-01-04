@@ -13,6 +13,6 @@ class Delete extends AbstractAction
         $this->delete($object);
         $response = $response->withStatus(204);
 
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response;
     }
 }

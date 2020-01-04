@@ -2,8 +2,9 @@
 
 use Psr\Http\Message\RequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Slim\Factory\AppFactory;
-use SlimPlatform\Utils\ParameterBag;
+use SlimPlatform\Utils;
 
 require dirname(__DIR__).'/vendor/autoload.php';
 
@@ -34,22 +35,17 @@ $config = [
                 ]
             ],
             'actions' => [
-                'post' => [
+                'create' => [
                     'method' => 'POST',
                     'uri' => '/books',
                     'handler' => 'SlimPlatform\Action\Post'
                 ],
-                'list' => [
-                    'method' => 'GET',
-                    'uri' => '/books',
-                    'handler' => 'SlimPlatform\Action\All'
-                ],
-                'get' => [
+                'read' => [
                     'method' => 'GET',
                     'uri' => '/books/{id}',
                     'handler' => 'SlimPlatform\Action\Get'
                 ],
-                'put' => [
+                'update' => [
                     'method' => 'PUT',
                     'uri' => '/books/{id}',
                     'handler' => 'SlimPlatform\Action\Put'
@@ -58,13 +54,18 @@ $config = [
                     'method' => 'DELETE',
                     'uri' => '/books/{id}',
                     'handler' => 'SlimPlatform\Action\Delete'
+                ],
+                'index' => [
+                    'method' => 'GET',
+                    'uri' => '/books',
+                    'handler' => 'SlimPlatform\Action\All'
                 ]
             ]
         ]
     ]
 ];
 
-$container = new ParameterBag(['config' => $config]);
+$container = new Utils\ParameterBag(['config' => $config]);
 
 $params = parse_url($_ENV['DATABASE_URL']);
 $container->set('pdo', new \PDO(
@@ -84,10 +85,15 @@ foreach ($config['resources'] as $resourceName => $resource) {
         $app->map([$action['method']], $action['uri'], function(Request $request, Response $response, $args) use ($action, $container, $resourceName, $actionName) {
             $handler = new $action['handler']($container, $resourceName);
 
+            return $handler($request, $response, $args);
+        })
+        ->add(function (Request $request, RequestHandler $handler) use ($action, $container, $resourceName, $actionName) {
             $request = $request->withAttribute('_resource', $resourceName);
             $request = $request->withAttribute('_action', strtolower($actionName));
 
-            return $handler($request, $response, $args);
+            $response = $handler->handle($request);
+
+            return $response->withHeader('Content-Type', 'application/json');
         });
     }
 }

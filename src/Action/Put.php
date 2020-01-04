@@ -18,6 +18,6 @@ class Put extends AbstractAction
 
         $response->getBody()->write(json_encode($object));
 
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response;
     }
 }
