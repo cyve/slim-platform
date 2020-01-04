@@ -14,11 +14,50 @@ if (is_readable(dirname(__DIR__).'/.env')) {
 $config = [
     'resources' => [
         'book' => [
+            'table' => 'book',
+            'model' => [
+                'title' => [
+                    'type' => 'string',
+                    'required' => true
+                ],
+                'isbn' => [
+                    'type' => 'string'
+                ],
+                'description' => [
+                    'type' => 'string'
+                ],
+                'author' => [
+                    'type' => 'string'
+                ],
+                'publicationDate' => [
+                    'type' => 'datetime'
+                ]
+            ],
             'actions' => [
+                'post' => [
+                    'method' => 'POST',
+                    'uri' => '/books',
+                    'handler' => 'SlimPlatform\Action\Post'
+                ],
+                'list' => [
+                    'method' => 'GET',
+                    'uri' => '/books',
+                    'handler' => 'SlimPlatform\Action\All'
+                ],
                 'get' => [
                     'method' => 'GET',
                     'uri' => '/books/{id}',
                     'handler' => 'SlimPlatform\Action\Get'
+                ],
+                'put' => [
+                    'method' => 'PUT',
+                    'uri' => '/books/{id}',
+                    'handler' => 'SlimPlatform\Action\Put'
+                ],
+                'delete' => [
+                    'method' => 'DELETE',
+                    'uri' => '/books/{id}',
+                    'handler' => 'SlimPlatform\Action\Delete'
                 ]
             ]
         ]
@@ -43,9 +82,10 @@ $app->get('/', function (Request $request, Response $response) {
 
 foreach ($config['resources'] as $name => $resource) {
     foreach ($resource['actions'] as $action) {
-        $app->map([$action['method']], $action['uri'], $action['handler']);
+        $app->map([$action['method']], $action['uri'], new $action['handler']($container, $resource));
     }
 }
 
+$app->addBodyParsingMiddleware();
 $app->addErrorMiddleware(true, true, true);
 $app->run();
