@@ -81,7 +81,7 @@ $app->get('/', function (Request $request, Response $response) {
 
 foreach ($config['resources'] as $name => $resource) {
     foreach ($resource['actions'] as $action) {
-        $app->map([$action['method']], $action['uri'], new $action['handler']($container, $resource));
+        $app->map([$action['method']], $action['uri'], new $action['handler']($container, $name));
     }
 }
 
