@@ -13,63 +13,15 @@ if (is_readable(dirname(__DIR__).'/.env')) {
     $_ENV = $_ENV + parse_ini_file(dirname(__DIR__).'/.env');
 }
 
-$config = [
-    'resources' => [
-        'book' => [
-            'table' => 'book',
-            'model' => [
-                'title' => [
-                    'type' => 'string',
-                    'required' => true
-                ],
-                'isbn' => [
-                    'type' => 'string'
-                ],
-                'description' => [
-                    'type' => 'string'
-                ],
-                'author' => [
-                    'type' => 'string'
-                ],
-                'publicationDate' => [
-                    'type' => 'datetime'
-                ]
-            ],
-            'actions' => [
-                'create' => [
-                    'method' => 'POST',
-                    'uri' => '/books',
-                ],
-                'read' => [
-                    'method' => 'GET',
-                    'uri' => '/books/{id}',
-                ],
-                'update' => [
-                    'method' => 'PUT',
-                    'uri' => '/books/{id}',
-                ],
-                'delete' => [
-                    'method' => 'DELETE',
-                    'uri' => '/books/{id}',
-                ],
-                'index' => [
-                    'method' => 'GET',
-                    'uri' => '/books',
-                ]
-            ]
-        ]
-    ]
-];
-
-$container = new Utils\ParameterBag(['config' => $config]);
-
 $params = parse_url($_ENV['DATABASE_URL']);
-$container->set('pdo', new \PDO(
+$pdo = new \PDO(
     sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8', $params['host'], $params['port'] ?? 3306, trim($params['path'], '/')),
     $params['user'],
     $params['pass'] ?? null,
     [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]
-));
+);
+$config = include dirname(__DIR__).'/config/config.php';
+$container = new Utils\ParameterBag(['config' => $config, 'pdo' => $pdo]);
 
 $app = AppFactory::createFromContainer($container);
 $app->get('/', function (Request $request, Response $response) {
