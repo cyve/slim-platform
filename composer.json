@@ -1,6 +1,6 @@
 {
     "name": "cyve/slim-platform",
-    "description": "REST API micro framework",
+    "description": "PHP micro framework for REST API based on Slim",
     "type": "project",
     "license": "Proprietary",
     "authors": [
