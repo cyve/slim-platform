@@ -39,27 +39,22 @@ $config = [
                 'create' => [
                     'method' => 'POST',
                     'uri' => '/books',
-                    'handler' => 'SlimPlatform\Action\Post'
                 ],
                 'read' => [
                     'method' => 'GET',
                     'uri' => '/books/{id}',
-                    'handler' => 'SlimPlatform\Action\Get'
                 ],
                 'update' => [
                     'method' => 'PUT',
                     'uri' => '/books/{id}',
-                    'handler' => 'SlimPlatform\Action\Put'
                 ],
                 'delete' => [
                     'method' => 'DELETE',
                     'uri' => '/books/{id}',
-                    'handler' => 'SlimPlatform\Action\Delete'
                 ],
                 'index' => [
                     'method' => 'GET',
                     'uri' => '/books',
-                    'handler' => 'SlimPlatform\Action\All'
                 ]
             ]
         ]
@@ -83,10 +78,14 @@ $app->get('/', function (Request $request, Response $response) {
 
 foreach ($config['resources'] as $resourceName => $resource) {
     foreach ($resource['actions'] as $actionName => $action) {
-        $app->map([$action['method']], $action['uri'], function(Request $request, Response $response, $args) use ($action, $container, $resourceName, $actionName) {
-            $handler = new $action['handler']($container, $resourceName);
+        $app->map([$action['method']], $action['uri'], function (Request $request, Response $response) {
+            $statusCode = 204;
+            if ($data = $request->getAttribute('data')) {
+                $statusCode = $request->getAttribute('_action') === 'create' ? 201 : 200;
+                $response->getBody()->write(json_encode($data));
+            }
 
-            return $handler($request, $response, $args);
+            return $response->withStatus($statusCode);
         })
         ->add(new Middleware\WriteMiddleware($container))
         ->add(new Middleware\ValidateMiddleware())
