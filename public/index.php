@@ -88,6 +88,7 @@ foreach ($config['resources'] as $resourceName => $resource) {
 
             return $handler($request, $response, $args);
         })
+        ->add(new Middleware\DeserializeMiddleware())
         ->add(new Middleware\ReadMiddleware($container))
         ->add(function (Request $request, RequestHandler $handler) use ($action, $container, $resourceName, $actionName) {
             $request = $request->withAttribute('_resource', $resourceName);

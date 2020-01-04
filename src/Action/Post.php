@@ -9,8 +9,8 @@ class Post extends AbstractAction
 {
     public function __invoke(Request $request, Response $response, $args): Response
     {
-        $data = $request->getParsedBody();
-        if (array_values($data) !== $data) {
+        $data = $request->getAttribute('data');
+        if (!is_array($data)) {
             $data = [$data];
         }
 
@@ -19,7 +19,7 @@ class Post extends AbstractAction
             $item = $this->write((object) $item);
         }
 
-        if (array_values($data) === $data && count($data) === 1) {
+        if (count($data) === 1) {
             $data = $data[0];
         }
 

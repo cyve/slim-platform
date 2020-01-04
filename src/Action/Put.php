@@ -9,14 +9,12 @@ class Put extends AbstractAction
 {
     public function __invoke(Request $request, Response $response, $args): Response
     {
-        $object = $request->getAttribute('data');
+        $data = $request->getAttribute('data');
 
-        $data = $request->getParsedBody();
-        $object = (object) array_merge((array) $object, (array) $data);
-        $this->validate($object);
-        $this->write($object);
+        $this->validate(data);
+        $this->write($data);
 
-        $response->getBody()->write(json_encode($object));
+        $response->getBody()->write(json_encode($data));
 
         return $response;
     }
