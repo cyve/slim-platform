@@ -4,6 +4,7 @@ use Psr\Http\Message\RequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Slim\Factory\AppFactory;
+use SlimPlatform\Middleware;
 use SlimPlatform\Utils;
 
 require dirname(__DIR__).'/vendor/autoload.php';
@@ -87,9 +88,11 @@ foreach ($config['resources'] as $resourceName => $resource) {
 
             return $handler($request, $response, $args);
         })
+        ->add(new Middleware\ReadMiddleware($container))
         ->add(function (Request $request, RequestHandler $handler) use ($action, $container, $resourceName, $actionName) {
             $request = $request->withAttribute('_resource', $resourceName);
             $request = $request->withAttribute('_action', strtolower($actionName));
+            $request = $request->withAttribute('_config', $container->get('config')['resources'][$resourceName]);
 
             $response = $handler->handle($request);
 

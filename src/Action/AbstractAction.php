@@ -16,29 +16,6 @@ abstract class AbstractAction
         $this->config = $container->get('config')['resources'][$resource];
     }
 
-    protected function read(Request $request)
-    {
-        $pdo = $this->container->get('pdo');
-        $table = $this->config['table'];
-        $columns = array_keys($this->config['model']);
-
-        if ($id = $request->getAttribute('id')) {
-            $stmt = $pdo->prepare('SELECT id,'.implode(',', $columns).' FROM '.$table.' WHERE id = :id');
-            $stmt->execute(['id' => (int) $id]);
-
-            if (!$result = $stmt->fetch(\PDO::FETCH_OBJ)) {
-                throw new HttpNotFoundException($request);
-            }
-
-            return $result;
-        }
-
-        $stmt = $pdo->prepare('SELECT id,'.implode(',', $columns).' FROM '.$table);
-        $stmt->execute();
-
-        return $stmt->fetchAll(\PDO::FETCH_OBJ);
-    }
-
     protected function validate($object)
     {
         foreach ($this->config['model'] as $property => $config) {

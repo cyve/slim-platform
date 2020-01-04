@@ -9,7 +9,7 @@ class Get extends AbstractAction
 {
     public function __invoke(Request $request, Response $response, $args = []): Response
     {
-        $data = $this->read($request);
+        $data = $request->getAttribute('data');
         $response->getBody()->write(json_encode($data));
 
         return $response;
