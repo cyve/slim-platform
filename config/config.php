@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'parameters' => [],
     'resources' => [
         'book' => [
             'table' => 'book',
