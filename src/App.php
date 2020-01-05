@@ -5,7 +5,7 @@ namespace SlimPlatform;
 use Psr\Http\Message\RequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
-use Slim\Factory\AppFactory;
+use Slim;
 use SlimPlatform\Middleware;
 use SlimPlatform\Utils;
 
@@ -24,7 +24,7 @@ class App
         );
         $container = new Utils\ParameterBag(['config' => $config, 'pdo' => $pdo]);
 
-        $app = AppFactory::createFromContainer($container);
+        $app = Slim\Factory\AppFactory::createFromContainer($container);
         $app->get('/', function (Request $request, Response $response) {
             return $response;
         });
@@ -44,6 +44,7 @@ class App
                 ->add(new Middleware\ValidateMiddleware())
                 ->add(new Middleware\DeserializeMiddleware())
                 ->add(new Middleware\ReadMiddleware($container))
+                ->add(new Slim\Middleware\BodyParsingMiddleware())
                 ->add(function (Request $request, RequestHandler $handler) use ($action, $container, $resourceName, $actionName) {
                     $request = $request->withAttribute('_resource', $resourceName);
                     $request = $request->withAttribute('_action', strtolower($actionName));
@@ -54,7 +55,6 @@ class App
             }
         }
 
-        $app->addBodyParsingMiddleware();
         $app->addErrorMiddleware(true, true, true);
 
         $this->app = $app;
