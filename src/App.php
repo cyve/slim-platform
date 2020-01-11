@@ -26,6 +26,18 @@ class App
 
         $app = Slim\Factory\AppFactory::createFromContainer($container);
         $app->get('/', function (Request $request, Response $response) {
+            $config = $this->get('config');
+
+            $html = '<h1>'.$config['title'].'</h1>';
+            $html .= '<ul>';
+            foreach ($config['resources'] as $resourceName => $resource) {
+                foreach ($resource['actions'] as $actionName => $action) {
+                    $html .= '<li><code>'.$action['method'].' '.$action['uri'].'</code></li>';
+                }
+            }
+            $html .= '</ul>';
+            $response->getBody()->write($html);
+
             return $response;
         });
 

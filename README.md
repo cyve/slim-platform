@@ -9,6 +9,7 @@ $ composer create-project cyve/slim-platform"
 ```php
 // config.php
 return [
+    'title' => 'Slim Platform',
     'parameters' => [],
     'resources' => [
         'book' => [
