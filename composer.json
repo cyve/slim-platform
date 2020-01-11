@@ -2,7 +2,7 @@
     "name": "cyve/slim-platform",
     "description": "PHP micro framework for REST API based on Slim",
     "type": "project",
-    "license": "Proprietary",
+    "license": "MIT",
     "authors": [
         {
             "name": "Cyril Vermande",
