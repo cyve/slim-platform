@@ -45,7 +45,8 @@ class App
             foreach ($resource['actions'] as $actionName => $action) {
                 $app->map([$action['method']], $action['uri'], function (Request $request, Response $response) {
                     $statusCode = 204;
-                    if ($data = $request->getAttribute('data')) {
+                    $data = $request->getAttribute('data');
+                    if ($data !== null) {
                         $statusCode = $request->getAttribute('_action') === 'create' ? 201 : 200;
                         $response->getBody()->write(json_encode($data));
                     }
