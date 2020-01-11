@@ -41,7 +41,7 @@ class ValidateMiddleware
                 if (!\DateTime::createFromFormat('Y-m-d H:i:s', $value)) {
                     throw new \Exception(sprintf('Invalid property `%s` (expected `datetime` with format `Y-m-d H:i:s`).', $property));
                 }
-            } elseif ($type !== gettype($value)) {
+            } elseif (in_array($type, ['integer', 'float', 'string', 'boolean']) && !is_scalar($value)) {
                 throw new \Exception(sprintf('Invalid property `%s` (expected `%s`).', $property, $type));
             }
         }
