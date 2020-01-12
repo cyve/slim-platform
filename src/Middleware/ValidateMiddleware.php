@@ -27,9 +27,7 @@ class ValidateMiddleware
         }
 
         foreach ($this->config['model'] as $property => $model) {
-            $value = $data->$property;
-
-            if ($value === null) {
+            if (!isset($data->$property) || ($value = $data->$property) === null) {
                 if ($model['required'] ?? false) {
                     throw new \Exception(sprintf('Property `%s` is empty.', $property));
                 }
@@ -41,8 +39,11 @@ class ValidateMiddleware
                 if (!\DateTime::createFromFormat('Y-m-d H:i:s', $value)) {
                     throw new \Exception(sprintf('Invalid property `%s` (expected `datetime` with format `Y-m-d H:i:s`).', $property));
                 }
-            } elseif (in_array($type, ['integer', 'float', 'string', 'boolean']) && !is_scalar($value)) {
-                throw new \Exception(sprintf('Invalid property `%s` (expected `%s`).', $property, $type));
+            } else {
+                $method = sprintf('is_%s', $type);
+                if (!$method($value)) {
+                    throw new \Exception(sprintf('Invalid property `%s` (expected `%s`).', $property, $type));
+                }
             }
         }
     }
