@@ -15,13 +15,7 @@ class App
 
     public function __construct(array $config)
     {
-        $params = parse_url($config['parameters']['DATABASE_URL']);
-        $pdo = new \PDO(
-            sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8', $params['host'], $params['port'] ?? 3306, trim($params['path'], '/')),
-            $params['user'],
-            $params['pass'] ?? null,
-            [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]
-        );
+        $pdo = new \PDO('sqlite:../var/database', null, null, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
         $container = new Utils\ParameterBag(['config' => $config, 'pdo' => $pdo]);
 
         $app = Slim\Factory\AppFactory::createFromContainer($container);
