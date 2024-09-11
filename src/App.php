@@ -2,73 +2,57 @@
 
 namespace SlimPlatform;
 
-use Psr\Http\Message\RequestInterface as Request;
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use Slim;
-use SlimPlatform\Middleware;
-use SlimPlatform\Utils;
+use Slim\Factory\AppFactory;
+use Slim\Middleware\BodyParsingMiddleware;
+use SlimPlatform\Application\Action;
+use SlimPlatform\Infrastructure\Persistence\Config;
+use SlimPlatform\Infrastructure\Persistence\PdoFactory;
+use SlimPlatform\Infrastructure\Persistence\PdoRepository;
 
 class App
 {
-    private $app;
+    private Slim\App $app;
 
-    public function __construct(array $config)
+    public function __construct()
     {
-        $pdo = new \PDO('sqlite:../var/database', null, null, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
-        $container = new Utils\ParameterBag(['config' => $config, 'pdo' => $pdo]);
+        $databaseDsn = $_ENV['DATABASE_DSN'] ?? throw new \RuntimeException('The environment variable "DATABASE_DSN" is not set.');
+        $pdo = PdoFactory::create($databaseDsn);
 
-        $app = Slim\Factory\AppFactory::createFromContainer($container);
-        $app->get('/', function (Request $request, Response $response) {
-            $config = $this->get('config');
+        $config = new Config($pdo);
 
-            $html = '<h1>'.$config['title'].'</h1>';
-            $html .= '<ul>';
-            foreach ($config['resources'] as $resourceName => $resource) {
-                foreach ($resource['actions'] as $actionName => $action) {
-                    $html .= '<li><code>'.$action['method'].' '.$action['uri'].'</code></li>';
-                }
-            }
-            $html .= '</ul>';
-            $response->getBody()->write($html);
+        $app = AppFactory::create();
+        $app->get('/', function (ServerRequestInterface $request, ResponseInterface $response) {
+            $response->getBody()->write(sprintf('SlimPlatform %s', $_ENV['APP_VERSION'] ?? '0.0.0'));
 
             return $response;
         });
 
-        foreach ($config['resources'] as $resourceName => $resource) {
-            foreach ($resource['actions'] as $actionName => $action) {
-                $app->map([$action['method']], $action['uri'], function (Request $request, Response $response) {
-                    $statusCode = 204;
-                    $data = $request->getAttribute('data');
-                    if ($data !== null) {
-                        $statusCode = $request->getAttribute('_action') === 'create' ? 201 : 200;
-                        $response->getBody()->write(json_encode($data));
-                    }
-
-                    return $response->withHeader('Content-Type', 'application/json')->withStatus($statusCode);
-                })
-                ->add(new Middleware\WriteMiddleware($container))
-                ->add(new Middleware\ValidateMiddleware())
-                ->add(new Middleware\DeserializeMiddleware())
-                ->add(new Middleware\ReadMiddleware($container))
-                ->add(new Slim\Middleware\BodyParsingMiddleware())
-                ->add(function (Request $request, RequestHandler $handler) use ($action, $container, $resourceName, $actionName) {
-                    $request = $request->withAttribute('_resource', $resourceName);
-                    $request = $request->withAttribute('_action', strtolower($actionName));
-                    $request = $request->withAttribute('_config', $container->get('config')['resources'][$resourceName]);
-
-                    return $handler->handle($request);
-                });
-            }
+        foreach ($config->getResources() as $resource) {
+            $repository = new PdoRepository($pdo, $resource['table']);
+            $app->get($resource['path'].'[/]', new Action\Index($repository));
+            $app->get($resource['path'].'/{id}', new Action\Read($repository));
+            $app->post($resource['path'].'[/]', new Action\Create($repository));
+            $app->patch($resource['path'].'/{id}', new Action\Update($repository));
+            $app->delete($resource['path'].'/{id}', new Action\Delete($repository));
         }
 
+        $app->addMiddleware(new BodyParsingMiddleware());
         $app->addErrorMiddleware(true, true, true);
 
         $this->app = $app;
     }
 
-    public function run(): void
+    public function addMiddleware(MiddlewareInterface $middleware): void
     {
-        $this->app->run();
+        $this->app->addMiddleware($middleware);
+    }
+
+    public function run(?ServerRequestInterface $request = null): void
+    {
+        $this->app->run($request);
     }
 }
