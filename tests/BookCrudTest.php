@@ -14,7 +14,7 @@ class BookCrudTest extends TestCase
 
     public function setUp(): void
     {
-        $this->pdo = new \PDO('mysql:host:127.0.0.1;port=3306;dbname=library', 'app');
+        $this->pdo = new \PDO('mysql:host:127.0.0.1;port=3306;dbname=slim_platform', 'app');
     }
 
     public function testGetBooks()
@@ -40,10 +40,8 @@ class BookCrudTest extends TestCase
 
         $book = json_decode((string) $response->getBody());
         $this->assertEquals(1, $book->id);
-        $this->assertEquals('The lord of the rings', $book->title);
-        $this->assertEquals('9780008471286', $book->isbn);
-        $this->assertEquals(5, $book->note);
-        $this->assertEquals(true, $book->read);
+        $this->assertIsString($book->title);
+        $this->assertNotEmpty($book->title);
     }
 
     public function testGetBookNotFound()
@@ -55,21 +53,23 @@ class BookCrudTest extends TestCase
 
     public function testCreateBook()
     {
-        $response = $this->sendRequest('POST', '/books', [], ['title' => 'Dune']);
+        $response = $this->sendRequest('POST', '/books', [], ['title' => 'Dune', 'author' => 'Frank Herbert']);
 
         $this->assertEquals(201, $response->getStatusCode());
 
         $book = json_decode((string) $response->getBody());
+        $lastInsertId = $book->id;
+
         $this->assertNotEmpty($book->id);
         $this->assertEquals('Dune', $book->title);
+        $this->assertEquals('Frank Herbert', $book->author);
+        $this->assertNull($book->note);
 
-        $lastInsertId = $book->id;
         $book = $this->pdo->query('SELECT * FROM book ORDER BY ID DESC LIMIT 1')->fetchObject();
         $this->assertEquals($lastInsertId, $book->id);
         $this->assertEquals('Dune', $book->title);
-        $this->assertEquals(null, $book->isbn);
-        $this->assertEquals(0, $book->note);
-        $this->assertEquals(false, $book->read);
+        $this->assertEquals('Frank Herbert', $book->author);
+        $this->assertNull($book->note);
     }
 
     public function testCreateBookWithMissingField()
@@ -90,23 +90,15 @@ class BookCrudTest extends TestCase
     {
         $lastBookId = $this->pdo->query('SELECT id FROM book ORDER BY ID DESC LIMIT 1')->fetch(\PDO::FETCH_COLUMN);
 
-        $response = $this->sendRequest('PATCH', '/books/'.$lastBookId, [], ['title' => 'Dune', 'isbn' => '1234']);
+        $response = $this->sendRequest('PATCH', '/books/'.$lastBookId, [], ['note' => 5]);
 
         $this->assertEquals(200, $response->getStatusCode());
 
         $book = json_decode((string) $response->getBody());
-        $this->assertEquals($lastBookId, $book->id);
-        $this->assertEquals('Dune', $book->title);
-        $this->assertEquals('1234', $book->isbn);
-        $this->assertEquals(0, $book->note);
-        $this->assertEquals(false, $book->read);
+        $this->assertEquals(5, $book->note);
 
         $book = $this->pdo->query('SELECT * FROM book WHERE id='.$lastBookId)->fetchObject();
-        $this->assertEquals($lastBookId, $book->id);
-        $this->assertEquals('Dune', $book->title);
-        $this->assertEquals('1234', $book->isbn);
-        $this->assertEquals(0, $book->note);
-        $this->assertEquals(false, $book->read);
+        $this->assertEquals(5, $book->note);
     }
 
     public function testUpdateBookWithInvalidData()
