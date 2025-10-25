@@ -134,14 +134,15 @@ class BookCrudTest extends TestCase
     {
         $context  = stream_context_create([
             'http' => [
-                'method'  => $method,
-                'header'  => 'Content-Type: application/json',
+                'method' => $method,
+                'header' => 'Authorization: Bearer 68fbdb0ba654af3dbf10ea1ca680930c95d45fbc5eaf41b519140'.PHP_EOL.
+                            'Content-Type: application/json',
                 'content' => json_encode($body),
                 'ignore_errors' => true,
             ]
         ]);
         $http_response_header = [];
-        $stream = fopen('http://slim.local'.$url, 'r', false, $context);
+        $stream = fopen('http://127.0.0.1:8000'.$url, 'r', false, $context);
 
         preg_match('/HTTP\/[\d.]+ (\d{3})/', array_shift($http_response_header), $match);
         $statusCode = (int) $match[1];

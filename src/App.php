@@ -9,6 +9,7 @@ use Slim;
 use Slim\Factory\AppFactory;
 use Slim\Middleware\BodyParsingMiddleware;
 use SlimPlatform\Application\Action;
+use SlimPlatform\Infrastructure\Middlewares\Authentication;
 use SlimPlatform\Infrastructure\Persistence\Config;
 use SlimPlatform\Infrastructure\Persistence\PdoFactory;
 use SlimPlatform\Infrastructure\Persistence\PdoRepository;
@@ -40,6 +41,9 @@ class App
             $app->delete($resource['path'].'/{id}', new Action\Delete($repository));
         }
 
+        if ($encryptionKey = $_ENV['AUTH_ENCRYPTION_KEY'] ?? null) {
+            $app->addMiddleware(new Authentication($encryptionKey));
+        }
         $app->addMiddleware(new BodyParsingMiddleware());
         $app->addErrorMiddleware(true, true, true);
 
