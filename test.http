@@ -1,18 +1,18 @@
-GET http://127.0.0.1:8000/books
+GET http://127.0.0.1/slim-platform/books
 Accept: application/json
 
 ###
-GET http://127.0.0.1:8000/books
-Accept: application/json
-Authorization: Bearer 68fbdb0ba654af3dbf10ea1ca680930c95d45fbc5eaf41b519140
-
-###
-GET http://127.0.0.1:8000/books/1
+GET http://127.0.0.1/slim-platform/books
 Accept: application/json
 Authorization: Bearer 68fbdb0ba654af3dbf10ea1ca680930c95d45fbc5eaf41b519140
 
 ###
-POST http://127.0.0.1:8000/books
+GET http://127.0.0.1/slim-platform/books/1
+Accept: application/json
+Authorization: Bearer 68fbdb0ba654af3dbf10ea1ca680930c95d45fbc5eaf41b519140
+
+###
+POST http://127.0.0.1/slim-platform/books
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer 68fbdb0ba654af3dbf10ea1ca680930c95d45fbc5eaf41b519140
@@ -20,7 +20,7 @@ Authorization: Bearer 68fbdb0ba654af3dbf10ea1ca680930c95d45fbc5eaf41b519140
 {"title":"The Lord of the rings", "author": "JRR Tolkien"}
 
 ###
-PATCH http://127.0.0.1:8000/books/1
+PATCH http://127.0.0.1/slim-platform/books/1
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer 68fbdb0ba654af3dbf10ea1ca680930c95d45fbc5eaf41b519140

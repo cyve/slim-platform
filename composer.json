@@ -16,6 +16,7 @@
         "slim/slim": "^4.14",
         "slim/psr7": "^1.7",
         "middlewares/response-time": "^2.0",
+        "middlewares/base-path": "^2.2",
         "doctrine/inflector": "^2.0"
     },
     "require-dev": {
